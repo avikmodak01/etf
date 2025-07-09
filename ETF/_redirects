@@ -1,0 +1,11 @@
+# Netlify SPA redirects
+# This ensures all routes redirect to index.html for client-side routing
+
+/*    /index.html   200
+
+# Optional: Redirect www to non-www (uncomment if needed)
+# https://www.your-domain.com/* https://your-domain.com/:splat 301!
+
+# Optional: Force HTTPS (uncomment if needed)
+# http://your-domain.com/* https://your-domain.com/:splat 301!
+# http://www.your-domain.com/* https://your-domain.com/:splat 301!

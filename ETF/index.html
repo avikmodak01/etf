@@ -1,0 +1,1049 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ETF Strategy Trading App</title>
+    <link rel="stylesheet" href="styles.css">
+    
+    <!-- Environment variables for production -->
+    <meta name="SUPABASE_URL" content="">
+    <meta name="SUPABASE_ANON_KEY" content="">
+</head>
+<body>
+    <!-- Authentication Screen -->
+    <div id="login-screen" class="auth-screen">
+        <div class="auth-container">
+            <div class="auth-header">
+                <h1 id="auth-title">Sign In to ETF Strategy</h1>
+                <p class="auth-subtitle">Manage your ETF investments with data-driven strategies</p>
+            </div>
+            
+            <div class="auth-messages">
+                <div id="auth-error" class="auth-message error" style="display: none;"></div>
+                <div id="auth-success" class="auth-message success" style="display: none;"></div>
+            </div>
+            
+            <!-- Login View -->
+            <div id="login-view" class="auth-view">
+                <form id="login-form" class="auth-form">
+                    <div class="form-group">
+                        <label for="login-email">Email Address</label>
+                        <input type="email" id="login-email" name="email" required 
+                               placeholder="Enter your email address">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="login-password">Password</label>
+                        <div class="password-input">
+                            <input type="password" id="login-password" name="password" required 
+                                   placeholder="Enter your password">
+                            <button type="button" class="password-toggle" 
+                                    onclick="togglePassword('login-password')" 
+                                    data-target="login-password">👁️‍🗨️</button>
+                        </div>
+                    </div>
+                    
+                    <button type="submit" class="auth-submit-btn">Sign In</button>
+                    
+                    <div class="auth-links">
+                        <a href="#" class="auth-link" data-view="register">Don't have an account? Sign up</a>
+                        <a href="#" class="auth-link" data-view="forgot-password">Forgot your password?</a>
+                    </div>
+                </form>
+            </div>
+            
+            <!-- Register View -->
+            <div id="register-view" class="auth-view" style="display: none;">
+                <form id="register-form" class="auth-form">
+                    <div class="form-group">
+                        <label for="register-fullname">Full Name (Optional)</label>
+                        <input type="text" id="register-fullname" name="fullName" 
+                               placeholder="Enter your full name">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="register-email">Email Address</label>
+                        <input type="email" id="register-email" name="email" required 
+                               placeholder="Enter your email address">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="register-password">Password</label>
+                        <div class="password-input">
+                            <input type="password" id="register-password" name="password" required 
+                                   placeholder="Enter your password (min 8 characters)">
+                            <button type="button" class="password-toggle" 
+                                    onclick="togglePassword('register-password')" 
+                                    data-target="register-password">👁️‍🗨️</button>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="register-confirm-password">Confirm Password</label>
+                        <div class="password-input">
+                            <input type="password" id="register-confirm-password" name="confirmPassword" required 
+                                   placeholder="Confirm your password">
+                            <button type="button" class="password-toggle" 
+                                    onclick="togglePassword('register-confirm-password')" 
+                                    data-target="register-confirm-password">👁️‍🗨️</button>
+                        </div>
+                    </div>
+                    
+                    <button type="submit" class="auth-submit-btn">Create Account</button>
+                    
+                    <div class="auth-links">
+                        <a href="#" class="auth-link" data-view="login">Already have an account? Sign in</a>
+                    </div>
+                </form>
+            </div>
+            
+            <!-- Forgot Password View -->
+            <div id="forgot-password-view" class="auth-view" style="display: none;">
+                <form id="forgot-password-form" class="auth-form">
+                    <div class="form-group">
+                        <label for="forgot-email">Email Address</label>
+                        <input type="email" id="forgot-email" name="email" required 
+                               placeholder="Enter your email address">
+                    </div>
+                    
+                    <button type="submit" class="auth-submit-btn">Send Reset Link</button>
+                    
+                    <div class="auth-links">
+                        <a href="#" class="auth-link" data-view="login">Remember your password? Sign in</a>
+                        <a href="#" class="auth-link" data-view="register">Don't have an account? Sign up</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Application -->
+    <div id="main-app" style="display: none;">
+        <nav>
+            <div class="container">
+                <ul>
+                    <li><a href="#" onclick="showPage('dashboard')" class="active">Dashboard</a></li>
+                    <li><a href="#" onclick="showPage('etfs')">ETFs</a></li>
+                    <li><a href="#" onclick="showPage('holdings')">Holdings</a></li>
+                    <li><a href="#" onclick="showPage('budget')">Budget</a></li>
+                    <li><a href="#" onclick="showPage('transactions')">Transactions</a></li>
+                    <li><a href="#" onclick="showPage('config')">Config</a></li>
+                </ul>
+                
+                <div class="user-info">
+                    <span id="user-name">User</span>
+                    <span id="user-email">user@example.com</span>
+                    <button id="logout-btn" class="logout-btn">Sign Out</button>
+                </div>
+            </div>
+        </nav>
+
+    <div class="container">
+        <!-- Dashboard Page -->
+        <div id="dashboard-page" class="page">
+            <h1>ETF Strategy Dashboard</h1>
+            
+            <div class="stats-grid">
+                <div class="stat-item">
+                    <span class="stat-label">Today's Action</span>
+                    <span class="stat-value" id="today-action">Loading...</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label">Total Holdings</span>
+                    <span class="stat-value" id="total-holdings">0</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label">Portfolio Value</span>
+                    <span class="stat-value" id="portfolio-value">₹0</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label">Available Budget</span>
+                    <span class="stat-value" id="available-budget">₹0</span>
+                </div>
+            </div>
+            
+            <div class="data-freshness-info">
+                <p><strong>Data updated as on:</strong> <span id="data-updated-date">No data loaded</span></p>
+            </div>
+
+            <div class="card">
+                <h2>Strategy Summary</h2>
+                <p><strong>Last Updated:</strong> <span id="last-updated">Never</span></p>
+                <p><strong>Next Action:</strong> <span id="next-action">Calculate strategy</span></p>
+                <button onclick="calculateStrategy()">Calculate Today's Strategy</button>
+            </div>
+
+            <div class="card">
+                <h2>Recent Actions</h2>
+                <div id="recent-actions">
+                    <p class="loading">Loading recent actions...</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- ETFs Page -->
+        <div id="etfs-page" class="page" style="display: none;">
+            <h1>ETF Rankings</h1>
+            
+            <div class="card">
+                <div class="card-header">
+                    <h2>Current ETF Data</h2>
+                    <div class="controls">
+                        <button onclick="loadETFData()">Refresh Data</button>
+                        <button onclick="calculateRankings()">Recalculate Rankings</button>
+                    </div>
+                </div>
+                
+                <div class="table-container">
+                    <table id="etf-table">
+                        <thead>
+                            <tr>
+                                <th>Rank</th>
+                                <th>ETF Name</th>
+                                <th>CMP</th>
+                                <th>20 DMA</th>
+                                <th>Deviation %</th>
+                                <th>Status</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="etf-table-body">
+                            <tr><td colspan="7" class="loading">Loading ETF data...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="card">
+                <h2>Add/Update ETF Data</h2>
+                <form id="etf-form" class="form-grid">
+                    <div class="form-group">
+                        <label for="etf-name">ETF Name:</label>
+                        <input type="text" id="etf-name" placeholder="e.g., NIFTY 50 ETF" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="etf-cmp">Current Market Price (CMP):</label>
+                        <input type="number" id="etf-cmp" step="0.01" placeholder="155.50" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="etf-dma">20-Day Moving Average:</label>
+                        <input type="number" id="etf-dma" step="0.01" placeholder="160.00" required>
+                    </div>
+                    
+                    <div class="form-actions">
+                        <button type="submit">Add/Update ETF</button>
+                        <button type="reset" class="btn-secondary">Clear Form</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Holdings Page -->
+        <div id="holdings-page" class="page" style="display: none;">
+            <h1>My Holdings</h1>
+            
+            <div class="card">
+                <h2>Portfolio Summary</h2>
+                <div class="stats-grid">
+                    <div class="stat-item">
+                        <span class="stat-label">Total Investment</span>
+                        <span class="stat-value" id="total-investment">₹0</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">Current Value</span>
+                        <span class="stat-value" id="current-value">₹0</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">Total P&L</span>
+                        <span class="stat-value" id="total-pl">₹0</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">P&L %</span>
+                        <span class="stat-value" id="total-pl-percent">0%</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card">
+                <div class="card-header">
+                    <h2>Active Holdings</h2>
+                    <button onclick="refreshHoldings()">Refresh</button>
+                </div>
+                
+                <div class="table-container">
+                    <table id="active-holdings-table">
+                        <thead>
+                            <tr>
+                                <th>ETF Name</th>
+                                <th>Buy Price</th>
+                                <th>Quantity</th>
+                                <th>Current Price</th>
+                                <th>P&L</th>
+                                <th>P&L %</th>
+                                <th>Date Purchased</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="active-holdings-body">
+                            <tr><td colspan="8" class="loading">Loading holdings...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="card">
+                <h2>Manual Buy Order</h2>
+                <form id="buy-form" class="form-grid">
+                    <div class="form-group">
+                        <label for="buy-etf-select">Select ETF:</label>
+                        <select id="buy-etf-select" required>
+                            <option value="">Choose an ETF...</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="buy-price">Buy Price:</label>
+                        <input type="number" id="buy-price" step="0.01" placeholder="155.50" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="buy-quantity">Quantity:</label>
+                        <input type="number" id="buy-quantity" min="1" value="1" required>
+                    </div>
+                    
+                    <div class="form-actions">
+                        <button type="submit">Buy ETF</button>
+                        <button type="reset" class="btn-secondary">Clear</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Budget Page -->
+        <div id="budget-page" class="page" style="display: none;">
+            <h1>Budget Management</h1>
+            
+            <div class="card">
+                <h2>Budget Overview</h2>
+                <div class="budget-stats">
+                    <div class="budget-item">
+                        <span class="budget-label">Total Budget</span>
+                        <span class="budget-value" id="total-budget">₹0</span>
+                    </div>
+                    <div class="budget-item">
+                        <span class="budget-label">Daily Investment</span>
+                        <span class="budget-value" id="daily-amount">₹0</span>
+                    </div>
+                    <div class="budget-item">
+                        <span class="budget-label">Days Remaining</span>
+                        <span class="budget-value" id="days-remaining">50</span>
+                    </div>
+                    <div class="budget-item">
+                        <span class="budget-label">Amount Used</span>
+                        <span class="budget-value" id="amount-used">₹0</span>
+                    </div>
+                    <div class="budget-item">
+                        <span class="budget-label">Available Balance</span>
+                        <span class="budget-value" id="available-balance">₹0</span>
+                    </div>
+                    <div class="budget-item">
+                        <span class="budget-label">Reinvested Profit</span>
+                        <span class="budget-value profit" id="reinvested-profit">₹0</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <h2>Set Investment Budget</h2>
+                <form id="budget-form" class="form-grid">
+                    <div class="form-group">
+                        <label for="budget-amount">Total Budget (₹):</label>
+                        <input type="number" id="budget-amount" min="5000" step="100" placeholder="100000" required>
+                        <small>Minimum ₹5,000 (₹100 per day for 50 days)</small>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="start-date">Start Date:</label>
+                        <input type="date" id="start-date" required>
+                    </div>
+                    
+                    <div class="form-actions">
+                        <button type="submit">Set Budget</button>
+                        <button type="button" onclick="resetBudget()" class="btn-danger">Reset</button>
+                    </div>
+                </form>
+            </div>
+
+            <div class="card" id="topup-section" style="display: none;">
+                <h2>💰 Top-up Budget</h2>
+                <p class="topup-description">
+                    Increase your budget while maintaining existing investments. 
+                    Daily investment amount will be recalculated based on remaining days.
+                </p>
+                
+                <form id="topup-form" class="form-grid">
+                    <div class="form-group">
+                        <label for="topup-amount">Additional Amount (₹):</label>
+                        <input type="number" id="topup-amount" min="1000" step="100" placeholder="50000" required>
+                        <small>Minimum ₹1,000 top-up amount</small>
+                    </div>
+                    
+                    <div class="topup-preview" id="topup-preview" style="display: none;">
+                        <div class="preview-item">
+                            <span>Current Budget:</span>
+                            <span id="preview-current-budget">₹0</span>
+                        </div>
+                        <div class="preview-item">
+                            <span>Top-up Amount:</span>
+                            <span id="preview-topup-amount">₹0</span>
+                        </div>
+                        <div class="preview-item highlight">
+                            <span>New Total Budget:</span>
+                            <span id="preview-new-budget">₹0</span>
+                        </div>
+                        <div class="preview-item">
+                            <span>Amount Used (unchanged):</span>
+                            <span id="preview-used-amount">₹0</span>
+                        </div>
+                        <div class="preview-item">
+                            <span>Days Remaining:</span>
+                            <span id="preview-days-remaining">0</span>
+                        </div>
+                        <div class="preview-item highlight">
+                            <span>New Daily Investment:</span>
+                            <span id="preview-new-daily">₹0</span>
+                        </div>
+                    </div>
+                    
+                    <div class="form-actions">
+                        <button type="button" onclick="previewTopup()" class="btn-secondary">Preview Changes</button>
+                        <button type="submit" id="confirm-topup-btn" disabled>Confirm Top-up</button>
+                    </div>
+                </form>
+            </div>
+
+            <div class="card">
+                <h2>Profit Allocation Rules</h2>
+                <div class="profit-rules">
+                    <div class="rule-item">
+                        <div class="rule-percentage">80%</div>
+                        <div class="rule-description">
+                            <strong>Auto-Reinvestment</strong><br>
+                            Added to budget for future investments
+                        </div>
+                    </div>
+                    <div class="rule-item">
+                        <div class="rule-percentage">15%</div>
+                        <div class="rule-description">
+                            <strong>STCG Tax</strong><br>
+                            If holding ≤ 1 year
+                        </div>
+                    </div>
+                    <div class="rule-item">
+                        <div class="rule-percentage">12.5%</div>
+                        <div class="rule-description">
+                            <strong>LTCG Tax</strong><br>
+                            If holding > 1 year
+                        </div>
+                    </div>
+                    <div class="rule-item">
+                        <div class="rule-percentage">5%</div>
+                        <div class="rule-description">
+                            <strong>Brokerage</strong><br>
+                            Trading charges
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Transactions Page -->
+        <div id="transactions-page" class="page" style="display: none;">
+            <h1>Transaction Details</h1>
+            
+            <div class="card">
+                <h2>Transaction Summary</h2>
+                <div class="stats-grid">
+                    <div class="stat-item">
+                        <span class="stat-label">Total Transactions</span>
+                        <span class="stat-value" id="total-transactions">0</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">Realized Profit</span>
+                        <span class="stat-value profit" id="realized-profit">₹0</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">Tax Liability</span>
+                        <span class="stat-value loss" id="tax-liability">₹0</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">STCG Tax</span>
+                        <span class="stat-value loss" id="stcg-tax">₹0</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">LTCG Tax</span>
+                        <span class="stat-value loss" id="ltcg-tax">₹0</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">Net Profit</span>
+                        <span class="stat-value profit" id="net-profit">₹0</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <h2>All Transactions</h2>
+                    <div class="controls">
+                        <select id="trans-filter" onchange="filterTransactions()">
+                            <option value="all">All Transactions</option>
+                            <option value="buy">Buy Orders</option>
+                            <option value="sell">Sell Orders</option>
+                            <option value="profit">Profitable</option>
+                            <option value="stcg">STCG</option>
+                            <option value="ltcg">LTCG</option>
+                        </select>
+                        <button onclick="exportTransactions()" class="btn-secondary">Export CSV</button>
+                    </div>
+                </div>
+                
+                <div class="table-container">
+                    <table id="transactions-table">
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>Type</th>
+                                <th>ETF</th>
+                                <th>Quantity</th>
+                                <th>Price</th>
+                                <th>Amount</th>
+                                <th>P&L</th>
+                                <th>Days Held</th>
+                                <th>Tax Type</th>
+                                <th>Tax Amount</th>
+                                <th>Brokerage</th>
+                                <th>Net Amount</th>
+                            </tr>
+                        </thead>
+                        <tbody id="transactions-table-body">
+                            <tr><td colspan="12" class="loading">Loading transactions...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Config Page -->
+        <div id="config-page" class="page" style="display: none;">
+            <h1>Configuration</h1>
+
+        <div class="card">
+                <h2>Supabase Connection</h2>
+                
+                <!-- Connection Status Indicator -->
+                <div class="connection-status" id="connection-status">
+                    <div class="status-indicator">
+                        <span class="status-dot" id="status-dot"></span>
+                        <span class="status-text" id="status-text">Not Connected</span>
+                    </div>
+                    <button onclick="testConnection()" id="test-connection-btn">Test Connection</button>
+                </div>
+                
+                <div class="form-group">
+                    <label for="supabase-url">Supabase URL:</label>
+                    <input type="text" id="supabase-url" placeholder="https://your-project.supabase.co">
+                </div>
+                <div class="form-group">
+                    <label for="supabase-key">Supabase Anon Key:</label>
+                    <input type="password" id="supabase-key" placeholder="Your anon key">
+                </div>
+                <button onclick="saveConfig()">Save Configuration</button>
+            </div>
+
+            <div class="card">
+                <h2>Import Filters Configuration</h2>
+                <p>Configure filtering rules for ETF data import from NSE CSV files.</p>
+                
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="volume-filter">Minimum Volume Filter:</label>
+                        <input type="number" id="volume-filter" min="1000" step="1000" value="100000" placeholder="100000">
+                        <small>ETFs with volume below this threshold will be ignored</small>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="top-etfs-per-category">Top ETFs per Category:</label>
+                        <select id="top-etfs-per-category">
+                            <option value="1">Top 1 ETF per category</option>
+                            <option value="2">Top 2 ETFs per category</option>
+                            <option value="3" selected>Top 3 ETFs per category</option>
+                            <option value="5">Top 5 ETFs per category</option>
+                            <option value="10">Top 10 ETFs per category</option>
+                            <option value="0">No limit (import all)</option>
+                        </select>
+                        <small>Maximum ETFs to import per underlying asset category</small>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>
+                            <input type="checkbox" id="exclude-liquid-etfs" checked>
+                            Exclude LIQUID ETFs
+                        </label>
+                        <small>Skip ETFs containing "LIQUID" in their name</small>
+                    </div>
+                    
+                    <div class="form-actions">
+                        <button onclick="saveImportFilters()" class="btn-secondary">Save Filter Settings</button>
+                        <button onclick="resetImportFilters()" class="btn-outline">Reset to Defaults</button>
+                    </div>
+                </div>
+                
+                <div class="filter-preview" id="filter-preview">
+                    <h4>Current Filter Settings:</h4>
+                    <div class="filter-summary">
+                        <span>Volume: <strong id="current-volume-filter">100,000+</strong></span>
+                        <span>Per Category: <strong id="current-category-limit">Top 3</strong></span>
+                        <span>Exclude Liquid: <strong id="current-liquid-filter">Yes</strong></span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <h2>NSE ETF Data Upload</h2>
+                    <div class="download-section">
+        <p><strong>Download Latest ETF Data:</strong></p>
+        <a href="https://www.nseindia.com/market-data/exchange-traded-funds-etf" 
+           target="_blank" 
+           class="download-link">
+            📊 NSE ETF Market Data
+        </a>
+        <small>Download the CSV file from NSE's official ETF page</small>
+    </div>
+                <p>Upload CSV from NSE ETF stock watch. ETFs will be filtered based on your configuration above.</p>
+                
+                <div class="upload-section">
+                    <div class="form-group">
+                        <label for="csv-file">Select CSV File:</label>
+                        <input type="file" id="csv-file" accept=".csv" onchange="handleFileSelect(event)">
+                    </div>
+                    
+                    <div class="upload-info" id="upload-info" style="display: none;">
+                        <p><strong>File:</strong> <span id="file-name"></span></p>
+                        <p><strong>Size:</strong> <span id="file-size"></span></p>
+                    </div>
+                    
+                    <div class="form-actions">
+                        <button onclick="processCSVFile()" id="process-btn" disabled>Process CSV</button>
+                        <button onclick="clearFileSelection()" id="clear-btn" disabled>Clear</button>
+                    </div>
+                </div>
+
+                <div id="upload-results" style="display: none;">
+                    <h4>Upload Results:</h4>
+                    <p>Processed: <span id="processed-count">0</span> ETFs</p>
+                    <p>Valid (Volume > 100K): <span id="valid-count">0</span> ETFs</p>
+                </div>
+            </div>
+
+            <div class="card">
+                <h2>Sample Data</h2>
+                <button onclick="addSampleData()">Add Sample ETF Data</button>
+            </div>
+        </div>
+    </div>
+    
+    </div> <!-- End of main-app -->
+
+    <!-- Include Supabase and Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.38.0/dist/umd/supabase.min.js"></script>
+    <script src="utils.js"></script>
+    <script src="config.js"></script>
+    <script src="auth.js"></script>
+    <script src="budget.js"></script>
+    <script src="trading.js"></script>
+    <script src="import-filters.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/4.1.2/papaparse.min.js"></script>
+    <script src="app.js"></script>
+    
+    <!-- Development Environment Setup (only loads in development) -->
+    <script>
+        if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+            const script = document.createElement('script');
+            script.src = 'setup-env.js';
+            document.head.appendChild(script);
+        }
+    </script>
+<div id="loading-overlay" class="loading-overlay">
+    <div class="loading-content">
+        <div class="loading-spinner"></div>
+        <div class="loading-title" id="loading-title">Processing CSV File</div>
+        <div class="loading-message" id="loading-message">Please wait while we process your ETF data...</div>
+        
+        <div class="loading-progress">
+            <div class="loading-progress-bar" id="loading-progress-bar"></div>
+        </div>
+        
+        <div id="loading-steps">
+            <div class="loading-step pending" id="step-reading">
+                <div class="loading-step-icon">1</div>
+                Reading CSV file
+            </div>
+            <div class="loading-step pending" id="step-parsing">
+                <div class="loading-step-icon">2</div>
+                Parsing data rows
+            </div>
+            <div class="loading-step pending" id="step-filtering">
+                <div class="loading-step-icon">3</div>
+                Filtering valid ETFs
+            </div>
+            <div class="loading-step pending" id="step-inserting">
+                <div class="loading-step-icon">4</div>
+                Inserting into database
+            </div>
+        </div>
+        
+        <div class="loading-stats" id="loading-stats" style="display: none;">
+            <div class="loading-stat">
+                <div class="loading-stat-label">Processed</div>
+                <div class="loading-stat-value" id="stat-processed">0</div>
+            </div>
+            <div class="loading-stat">
+                <div class="loading-stat-label">Valid ETFs</div>
+                <div class="loading-stat-value" id="stat-valid">0</div>
+            </div>
+            <div class="loading-stat">
+                <div class="loading-stat-label">Inserted</div>
+                <div class="loading-stat-value" id="stat-inserted">0</div>
+            </div>
+            <div class="loading-stat">
+                <div class="loading-stat-label">Progress</div>
+                <div class="loading-stat-value" id="stat-progress">0%</div>
+            </div>
+        </div>
+        
+        <button class="loading-cancel-btn" id="loading-cancel-btn" onclick="cancelCSVProcessing()" style="display: none;">
+            Cancel Processing
+        </button>
+    </div>
+</div>
+
+<!-- Buy Confirmation Dialog -->
+<div id="buy-confirmation-overlay" class="confirmation-overlay" style="display: none;">
+    <div class="confirmation-content">
+        <div class="confirmation-header">
+            <h3>📊 Trading Strategy Recommendation</h3>
+            <button class="confirmation-close" onclick="closeBuyConfirmation()">&times;</button>
+        </div>
+        
+        <div class="confirmation-body">
+            <div class="trade-details">
+                <div class="trade-action">
+                    <span id="trade-action-type">BUY</span>
+                    <span id="trade-action-reason"></span>
+                </div>
+                
+                <div class="etf-info">
+                    <div class="etf-name" id="confirm-etf-name"></div>
+                    <div class="etf-price">
+                        <span>Current Price: </span>
+                        <span id="confirm-etf-price"></span>
+                    </div>
+                    <div class="etf-deviation">
+                        <span>Deviation: </span>
+                        <span id="confirm-etf-deviation"></span>
+                    </div>
+                    <div class="etf-rank">
+                        <span>Rank: </span>
+                        <span id="confirm-etf-rank"></span>
+                    </div>
+                </div>
+                
+                <div class="purchase-details">
+                    <div class="quantity-info">
+                        <span>Quantity: </span>
+                        <input type="number" id="confirm-quantity-input" min="1" oninput="updateTotalAmount()" />
+                    </div>
+                    <div class="daily-budget">
+                        <span>Daily Budget: </span>
+                        <span id="confirm-daily-budget"></span>
+                    </div>
+                    <div class="total-amount">
+                        <span>Total Amount: </span>
+                        <span id="confirm-total-amount"></span>
+                    </div>
+                    <div class="available-budget">
+                        <span>Available Budget: </span>
+                        <span id="confirm-available-budget"></span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="budget-warning" id="budget-warning" style="display: none;">
+                <span>⚠️ Insufficient budget. Maximum quantity adjusted.</span>
+            </div>
+        </div>
+        
+        <div class="confirmation-footer">
+            <button class="btn-secondary" onclick="closeBuyConfirmation()">Cancel</button>
+            <button class="btn-primary" onclick="confirmBuyAction()">Confirm Purchase</button>
+        </div>
+    </div>
+</div>
+
+<style>
+.confirmation-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.7);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+}
+
+.confirmation-content {
+    background: #1a1a1a;
+    color: #e0e0e0;
+    border-radius: 12px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+    max-width: 520px;
+    width: 90%;
+    max-height: 90vh;
+    overflow-y: auto;
+    border: 1px solid #333;
+}
+
+.confirmation-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px;
+    border-bottom: 1px solid #333;
+    background: #222;
+    border-radius: 12px 12px 0 0;
+}
+
+.confirmation-header h3 {
+    margin: 0;
+    color: #e0e0e0;
+    font-size: 18px;
+}
+
+.confirmation-close {
+    background: none;
+    border: none;
+    font-size: 24px;
+    cursor: pointer;
+    color: #999;
+    padding: 0;
+    width: 30px;
+    height: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    transition: all 0.2s;
+}
+
+.confirmation-close:hover {
+    color: #fff;
+    background: #444;
+}
+
+.confirmation-body {
+    padding: 20px;
+}
+
+.trade-details {
+    margin-bottom: 20px;
+}
+
+.trade-action {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 15px;
+}
+
+.trade-action span:first-child {
+    background: #4CAF50;
+    color: white;
+    padding: 6px 12px;
+    border-radius: 6px;
+    font-weight: bold;
+    font-size: 12px;
+    text-transform: uppercase;
+}
+
+.trade-action span:last-child {
+    color: #aaa;
+    font-size: 14px;
+}
+
+.etf-info {
+    background: #2a2a2a;
+    padding: 15px;
+    border-radius: 8px;
+    margin-bottom: 15px;
+    border: 1px solid #444;
+}
+
+.etf-name {
+    font-size: 20px;
+    font-weight: bold;
+    color: #fff;
+    margin-bottom: 12px;
+}
+
+.etf-info > div:not(.etf-name) {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 8px;
+}
+
+.etf-info > div:not(.etf-name) span:first-child {
+    color: #aaa;
+}
+
+.etf-info > div:not(.etf-name) span:last-child {
+    font-weight: bold;
+    color: #fff;
+}
+
+.purchase-details {
+    background: #2a2a2a;
+    padding: 15px;
+    border-radius: 8px;
+    border: 1px solid #444;
+}
+
+.purchase-details > div {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+}
+
+.purchase-details > div:last-child {
+    margin-bottom: 0;
+}
+
+.purchase-details > div span:first-child {
+    color: #aaa;
+}
+
+.purchase-details > div span:last-child {
+    font-weight: bold;
+    color: #64b5f6;
+}
+
+.quantity-info input {
+    background: #333;
+    color: #fff;
+    border: 1px solid #555;
+    padding: 6px 10px;
+    border-radius: 4px;
+    width: 80px;
+    text-align: center;
+    font-weight: bold;
+}
+
+.quantity-info input:focus {
+    outline: none;
+    border-color: #4CAF50;
+    box-shadow: 0 0 0 2px rgba(76, 175, 80, 0.2);
+}
+
+.total-amount span:last-child {
+    color: #4CAF50 !important;
+    font-size: 18px;
+    font-weight: bold;
+}
+
+.daily-budget span:last-child {
+    color: #ff9800 !important;
+}
+
+.budget-warning {
+    background: #3e2723;
+    color: #ffb74d;
+    padding: 12px;
+    border-radius: 6px;
+    margin-top: 15px;
+    border: 1px solid #5d4037;
+}
+
+.confirmation-footer {
+    display: flex;
+    gap: 12px;
+    justify-content: flex-end;
+    padding: 20px;
+    border-top: 1px solid #333;
+    background: #222;
+    border-radius: 0 0 12px 12px;
+}
+
+.btn-primary {
+    background: #4CAF50;
+    color: white;
+    border: none;
+    padding: 12px 24px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: bold;
+    transition: all 0.2s;
+}
+
+.btn-primary:hover {
+    background: #45a049;
+    transform: translateY(-1px);
+}
+
+.btn-primary:disabled {
+    background: #666;
+    cursor: not-allowed;
+    transform: none;
+}
+
+.btn-secondary {
+    background: #666;
+    color: white;
+    border: none;
+    padding: 12px 24px;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.btn-secondary:hover {
+    background: #777;
+    transform: translateY(-1px);
+}
+
+/* Dark scrollbar */
+.confirmation-content::-webkit-scrollbar {
+    width: 8px;
+}
+
+.confirmation-content::-webkit-scrollbar-track {
+    background: #333;
+}
+
+.confirmation-content::-webkit-scrollbar-thumb {
+    background: #666;
+    border-radius: 4px;
+}
+
+.confirmation-content::-webkit-scrollbar-thumb:hover {
+    background: #777;
+}
+</style>
+
+</body>
+</html>
